@@ -11,9 +11,34 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
+
+  const handleLogin = () => {
+    startTransition(async () => {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        setError(result.error ?? "Unexpected error");
+        return;
+      }
+
+      router.push("/");
+    });
+  };
 
   return (
     <Flex
@@ -32,34 +57,24 @@ export default function LoginPage() {
             Sign up
           </Heading>
 
-          {/* Email input */}
+          {/* Username input */}
           <Box mb="5">
             <Flex mb="1">
-              <Text
-                as="label"
-                htmlFor="example-email-field"
-                size="2"
-                weight="bold"
-              >
-                Email address
+              <Text as="label" size="2" weight="bold">
+                Username
               </Text>
             </Flex>
             <TextField.Root
               tabIndex={1}
-              placeholder="Enter your email"
-              id="example-email-field"
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
             />
           </Box>
 
           {/* Password input */}
           <Box mb="5" position="relative">
             <Flex align="baseline" justify="between" mb="1">
-              <Text
-                as="label"
-                size="2"
-                weight="bold"
-                htmlFor="example-password-field"
-              >
+              <Text as="label" size="2" weight="bold">
                 Password
               </Text>
               <Link
@@ -74,9 +89,18 @@ export default function LoginPage() {
             <TextField.Root
               tabIndex={2}
               placeholder="Enter your password"
-              id="example-password-field"
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
             />
           </Box>
+
+          <Flex justify={"center"}>
+            {error && (
+              <Text color="red" size={"2"}>
+                {error}
+              </Text>
+            )}
+          </Flex>
 
           {/* Buttons */}
           <Flex mt="6" justify="end" gap="3">
@@ -89,7 +113,9 @@ export default function LoginPage() {
             >
               Create an account
             </Button>
-            <Button tabIndex={3}>Sign in</Button>
+            <Button onClick={handleLogin} tabIndex={3} disabled={isPending}>
+              {isPending ? "Loading..." : "Sign in"}
+            </Button>
           </Flex>
         </Card>
       </Flex>
