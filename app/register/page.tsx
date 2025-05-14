@@ -10,9 +10,93 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function RegisterPage() {
   const router = useRouter();
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const fields = [
+    {
+      label: "First name",
+      id: "firstName",
+      placeholder: "Enter your first name",
+      type: "text" as const,
+    },
+    {
+      label: "Last name",
+      id: "lastName",
+      placeholder: "Enter your last name",
+      type: "text" as const,
+    },
+    {
+      label: "Email address",
+      id: "email",
+      placeholder: "Enter your email",
+      type: "email" as const,
+    },
+    {
+      label: "Username",
+      id: "username",
+      placeholder: "Choose a username",
+      type: "text" as const,
+    },
+    {
+      label: "Password",
+      id: "password",
+      placeholder: "Create a password",
+      type: "password" as const,
+    },
+    {
+      label: "Confirm password",
+      id: "confirmPassword",
+      placeholder: "Confirm your password",
+      type: "password" as const,
+    },
+  ] as const;
+
+  const handleChange = (field: string, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async () => {
+    const payload: Record<string, string> = {};
+    Object.entries(form).forEach(([key, value]) => {
+      if (value.trim() !== "") {
+        payload[key] = value;
+      }
+    });
+
+    setErrorMessage("");
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(data?.error || "Registration failed.");
+        return;
+      }
+
+      router.push("/login");
+    } catch {
+      setErrorMessage("Something went wrong. Please try again.");
+    }
+  };
 
   return (
     <Flex
@@ -31,112 +115,42 @@ export default function RegisterPage() {
             Create your account
           </Heading>
 
-          {/* First Name */}
-          <Box mb="4">
-            <Flex mb="1">
-              <Text as="label" htmlFor="first-name" size="2" weight="bold">
-                First name
-              </Text>
-            </Flex>
-            <TextField.Root
-              tabIndex={1}
-              placeholder="Enter your first name"
-              id="first-name"
-            />
-          </Box>
+          {/* Form Fields */}
+          {fields.map(({ label, id, placeholder, type }, index) => (
+            <Box mb="4" key={id}>
+              <Flex mb="1">
+                <Text as="label" htmlFor={id} size="2" weight="bold">
+                  {label}
+                </Text>
+              </Flex>
+              <TextField.Root
+                tabIndex={index + 1}
+                placeholder={placeholder}
+                id={id}
+                type={type}
+                value={form[id]}
+                onChange={(e) => handleChange(id, e.target.value)}
+              />
+            </Box>
+          ))}
 
-          {/* Last Name */}
-          <Box mb="4">
-            <Flex mb="1">
-              <Text as="label" htmlFor="last-name" size="2" weight="bold">
-                Last name
-              </Text>
-            </Flex>
-            <TextField.Root
-              tabIndex={2}
-              placeholder="Enter your last name"
-              id="last-name"
-            />
-          </Box>
+          {errorMessage && (
+            <Text color="red" size="2" mb="3">
+              {errorMessage}
+            </Text>
+          )}
 
-          {/* Email */}
-          <Box mb="4">
-            <Flex mb="1">
-              <Text as="label" htmlFor="email" size="2" weight="bold">
-                Email address
-              </Text>
-            </Flex>
-            <TextField.Root
-              tabIndex={3}
-              placeholder="Enter your email"
-              id="email"
-              type="email"
-            />
-          </Box>
-
-          {/* Username */}
-          <Box mb="4">
-            <Flex mb="1">
-              <Text as="label" htmlFor="username" size="2" weight="bold">
-                Username
-              </Text>
-            </Flex>
-            <TextField.Root
-              tabIndex={4}
-              placeholder="Choose a username"
-              id="username"
-            />
-          </Box>
-
-          {/* Password */}
-          <Box mb="4">
-            <Flex mb="1">
-              <Text as="label" htmlFor="password" size="2" weight="bold">
-                Password
-              </Text>
-            </Flex>
-            <TextField.Root
-              tabIndex={5}
-              placeholder="Create a password"
-              id="password"
-              type="password"
-            />
-          </Box>
-
-          {/* Confirm Password */}
-          <Box mb="5">
-            <Flex mb="1">
-              <Text
-                as="label"
-                htmlFor="confirm-password"
-                size="2"
-                weight="bold"
-              >
-                Confirm password
-              </Text>
-            </Flex>
-            <TextField.Root
-              tabIndex={6}
-              placeholder="Confirm your password"
-              id="confirm-password"
-              type="password"
-            />
-          </Box>
-
-          <Flex mt="6" justify="end" gap={"4"}>
-            {/* Back to login */}
+          <Flex mt="6" justify="end" gap="4">
             <Button
               tabIndex={8}
               variant="outline"
-              onClick={() => {
-                router.push("/login");
-              }}
+              onClick={() => router.push("/login")}
             >
               Back to login
             </Button>
-
-            {/* Submit */}
-            <Button tabIndex={7}>Register</Button>
+            <Button tabIndex={7} onClick={handleSubmit}>
+              Register
+            </Button>
           </Flex>
         </Card>
       </Flex>
