@@ -40,6 +40,12 @@ export default function LoginPage() {
     });
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !isPending) {
+      handleLogin();
+    }
+  };
+
   return (
     <Flex
       justify={"center"}
@@ -68,6 +74,7 @@ export default function LoginPage() {
               tabIndex={1}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
+              onKeyDown={handleKeyDown}
             />
           </Box>
 
@@ -91,6 +98,7 @@ export default function LoginPage() {
               placeholder="Enter your password"
               type="password"
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           </Box>
 
