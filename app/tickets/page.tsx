@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, Flex, Heading, Text, Table } from "@radix-ui/themes";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
 interface Requester {
@@ -18,6 +19,7 @@ interface Ticket {
 }
 
 export default function TicketsPage() {
+  const router = useRouter();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -30,6 +32,11 @@ export default function TicketsPage() {
           headers: { "Content-Type": "application/json" },
         });
 
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+
         if (!res.ok) {
           throw new Error("Failed to fetch tickets");
         }
@@ -40,7 +47,7 @@ export default function TicketsPage() {
         setError("Failed to load tickets. Please try again.");
       }
     });
-  }, []);
+  }, [router]);
 
   return (
     <Flex
