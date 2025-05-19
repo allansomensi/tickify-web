@@ -69,6 +69,11 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async () => {
+    if (form.password !== form.confirmPassword) {
+      setErrorMessage("Passwords do not match.");
+      return;
+    }
+
     const payload: Record<string, string> = {};
     Object.entries(form).forEach(([key, value]) => {
       if (value.trim() !== "") {
@@ -95,6 +100,12 @@ export default function RegisterPage() {
       router.push("/login");
     } catch {
       setErrorMessage("Something went wrong. Please try again.");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSubmit();
     }
   };
 
@@ -130,6 +141,7 @@ export default function RegisterPage() {
                 type={type}
                 value={form[id]}
                 onChange={(e) => handleChange(id, e.target.value)}
+                onKeyDown={handleKeyDown}
               />
             </Box>
           ))}
