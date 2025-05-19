@@ -1,7 +1,8 @@
 "use client";
 
-import { Card, Flex, Heading, Text, Table } from "@radix-ui/themes";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { Card, Flex, Heading, Text, Table } from "@radix-ui/themes";
 
 interface User {
   id: string;
@@ -12,6 +13,7 @@ interface User {
 }
 
 export default function UsersPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -24,6 +26,11 @@ export default function UsersPage() {
           headers: { "Content-Type": "application/json" },
         });
 
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+
         if (!res.ok) {
           throw new Error("Failed to fetch users");
         }
@@ -34,7 +41,7 @@ export default function UsersPage() {
         setError("Failed to load users. Please try again.");
       }
     });
-  }, []);
+  }, [router]);
 
   return (
     <Flex
