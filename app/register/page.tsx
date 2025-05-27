@@ -16,8 +16,8 @@ export default function RegisterPage() {
   const router = useRouter();
 
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
+    first_name: "",
+    last_name: "",
     email: "",
     username: "",
     password: "",
@@ -28,13 +28,13 @@ export default function RegisterPage() {
   const fields = [
     {
       label: "First name",
-      id: "firstName",
+      id: "first_name",
       placeholder: "Enter your first name",
       type: "text" as const,
     },
     {
       label: "Last name",
-      id: "lastName",
+      id: "last_name",
       placeholder: "Enter your last name",
       type: "text" as const,
     },
