@@ -31,6 +31,7 @@ export default function CreateUserPage() {
     password: string;
     confirmPassword: string;
     role: string | null;
+    status: string | null;
     username: string;
   }
 
@@ -41,6 +42,7 @@ export default function CreateUserPage() {
     password: "",
     confirmPassword: "",
     role: null,
+    status: null,
     username: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
@@ -118,10 +120,24 @@ export default function CreateUserPage() {
       ],
       required: false,
     },
+    {
+      label: "Status",
+      id: "status",
+      type: "select",
+      options: [
+        { value: "none", label: "None" },
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+      ],
+      required: false,
+    },
   ] as const;
 
   const handleChange = (field: keyof FormState, value: string | null) => {
-    const newValue = field === "role" && value === "none" ? null : value;
+    const newValue =
+      (field === "role" || field === "status") && value === "none"
+        ? null
+        : value;
     setForm((prev) => ({ ...prev, [field]: newValue }));
   };
 
@@ -148,6 +164,7 @@ export default function CreateUserPage() {
       if (form.first_name.trim()) payload.first_name = form.first_name;
       if (form.last_name.trim()) payload.last_name = form.last_name;
       if (form.role) payload.role = form.role;
+      if (form.status) payload.status = form.status;
 
       setErrorMessage("");
       setSuccessMessage("");
@@ -188,7 +205,6 @@ export default function CreateUserPage() {
   return (
     <Flex className="min-h-screen bg-gray-900" p="6">
       <Box flexGrow="1">
-        {/* Header */}
         <Card mb="4">
           <Flex justify="between" align="center" p="2">
             <Heading size="8">Create User</Heading>
@@ -202,7 +218,6 @@ export default function CreateUserPage() {
           </Flex>
         </Card>
 
-        {/* Notifications */}
         {errorMessage && (
           <Callout.Root color="red" mb="4">
             <Callout.Icon>
@@ -220,7 +235,6 @@ export default function CreateUserPage() {
           </Callout.Root>
         )}
 
-        {/* Content Area */}
         <Card size="4">
           <DataList.Root>
             {fields.map(({ label, id, type, required }, index) => (
@@ -254,7 +268,7 @@ export default function CreateUserPage() {
                       disabled={isPending}
                     >
                       <Select.Trigger
-                        placeholder="Select role"
+                        placeholder="Select value"
                         style={{ width: "300px" }}
                         tabIndex={index + 1}
                       />

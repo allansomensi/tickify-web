@@ -56,9 +56,8 @@ export default function UserDetailsPage({ params }: Props) {
 
         const data = await res.json();
         setUser(data);
-      } catch (err: any) {
-        setError(err.message || "Failed to load user. Please try again.");
-        console.error("Fetch user error:", err);
+      } catch {
+        setError("Failed to load user. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -147,6 +146,12 @@ export default function UserDetailsPage({ params }: Props) {
                 </DataList.Value>
               </DataList.Item>
               <DataList.Item align="center">
+                <DataList.Label>Status</DataList.Label>
+                <DataList.Value>
+                  <Skeleton>Active</Skeleton>
+                </DataList.Value>
+              </DataList.Item>
+              <DataList.Item align="center">
                 <DataList.Label>Created At</DataList.Label>
                 <DataList.Value>
                   <Skeleton>5/27/2025</Skeleton>
@@ -210,6 +215,22 @@ export default function UserDetailsPage({ params }: Props) {
                     }
                   >
                     {user.role || ""}
+                  </Badge>
+                </DataList.Value>
+              </DataList.Item>
+              <DataList.Item align="center">
+                <DataList.Label>Status</DataList.Label>
+                <DataList.Value>
+                  <Badge
+                    color={
+                      user.status === "active"
+                        ? "jade"
+                        : user.status === "inactive"
+                          ? "red"
+                          : "gray"
+                    }
+                  >
+                    {user.status || ""}
                   </Badge>
                 </DataList.Value>
               </DataList.Item>

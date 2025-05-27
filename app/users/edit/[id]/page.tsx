@@ -33,6 +33,7 @@ export default function EditUserPage() {
     password: string;
     confirmPassword: string;
     role: string | null;
+    status: string | null;
     username: string;
   }
 
@@ -45,6 +46,7 @@ export default function EditUserPage() {
     password: "",
     confirmPassword: "",
     role: null,
+    status: null,
     username: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
@@ -114,6 +116,17 @@ export default function EditUserPage() {
         { value: "admin", label: "Admin" },
       ],
     },
+    {
+      label: "Status",
+      id: "status",
+      type: "select",
+      required: false,
+      options: [
+        { value: "none", label: "None" },
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+      ],
+    },
   ];
 
   useEffect(() => {
@@ -140,6 +153,10 @@ export default function EditUserPage() {
           throw new Error("Invalid role type");
         }
 
+        if (typeof data.status !== "string" && data.status !== null) {
+          throw new Error("Invalid status");
+        }
+
         setForm({
           email: data.email || "",
           first_name: data.first_name || "",
@@ -147,6 +164,7 @@ export default function EditUserPage() {
           password: "",
           confirmPassword: "",
           role: data.role || null,
+          status: data.status || null,
           username: data.username,
         });
 
@@ -157,6 +175,7 @@ export default function EditUserPage() {
           password: "",
           confirmPassword: "",
           role: data.role || null,
+          status: data.status || null,
           username: data.username,
         });
       } catch {
@@ -170,7 +189,10 @@ export default function EditUserPage() {
   }, [id, router]);
 
   const handleChange = (field: keyof FormState, value: string | null) => {
-    const newValue = field === "role" && value === "none" ? null : value;
+    const newValue =
+      (field === "role" || field === "status") && value === "none"
+        ? null
+        : value;
     setForm((prev) => ({ ...prev, [field]: newValue }));
   };
 
@@ -305,7 +327,7 @@ export default function EditUserPage() {
                       disabled={isPending}
                     >
                       <Select.Trigger
-                        placeholder="Select role"
+                        placeholder="Select value"
                         style={{ width: "300px" }}
                         tabIndex={index + 1}
                       />
