@@ -3,14 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Card, Flex, Heading, Text, Table } from "@radix-ui/themes";
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: string;
-  created_at: string;
-}
+import { User } from "@/types/user";
 
 export default function UsersPage() {
   const router = useRouter();
