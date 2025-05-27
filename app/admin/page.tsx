@@ -269,9 +269,7 @@ export default function AdminPage() {
                       <Table.ColumnHeaderCell>Username</Table.ColumnHeaderCell>
                       <Table.ColumnHeaderCell>Email</Table.ColumnHeaderCell>
                       <Table.ColumnHeaderCell>Role</Table.ColumnHeaderCell>
-                      <Table.ColumnHeaderCell>
-                        Created At
-                      </Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
                       <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
                     </Table.Row>
                   </Table.Header>
@@ -295,7 +293,17 @@ export default function AdminPage() {
                           </Badge>
                         </Table.Cell>
                         <Table.Cell>
-                          {new Date(user.created_at).toLocaleDateString()}
+                          <Badge
+                            color={
+                              user.status === "active"
+                                ? "jade"
+                                : user.status === "inactive"
+                                  ? "red"
+                                  : "gray"
+                            }
+                          >
+                            {user.status}
+                          </Badge>
                         </Table.Cell>
                         <Table.Cell>
                           <Flex gap="2">
