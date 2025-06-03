@@ -1,22 +1,9 @@
 "use client";
 
+import { Ticket } from "@/types/ticket";
 import { Card, Flex, Heading, Text, Table } from "@radix-ui/themes";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-
-interface Requester {
-  id: string;
-  username: string;
-}
-
-interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  requester: Requester;
-  status: string;
-  created_at: string;
-}
 
 export default function TicketsPage() {
   const router = useRouter();

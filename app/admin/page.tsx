@@ -27,17 +27,21 @@ import {
   EyeOpenIcon,
 } from "@radix-ui/react-icons";
 import { User } from "@/types/user";
+import { Ticket } from "@/types/ticket";
 
 export default function AdminPage() {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [filteredTickets, setFilteredTickets] = useState<Ticket[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isPending, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState("users");
   const [userCount, setUserCount] = useState<number | null>(null);
+  const [ticketCount, setTicketCount] = useState<number | null>(null);
   const [isCountLoading, setIsCountLoading] = useState(true);
   const [countError, setCountError] = useState("");
 
@@ -64,6 +68,30 @@ export default function AdminPage() {
           setFilteredUsers(data);
         } catch {
           setError("Failed to load users. Please try again.");
+        }
+      });
+    } else if (activeTab === "tickets") {
+      startTransition(async () => {
+        try {
+          const res = await fetch("/api/tickets", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          });
+
+          if (res.status === 401) {
+            router.push("/login");
+            return;
+          }
+
+          if (!res.ok) {
+            throw new Error("Failed to fetch tickets");
+          }
+
+          const data = await res.json();
+          setTickets(data);
+          setFilteredTickets(data);
+        } catch {
+          setError("Failed to load tickets. Please try again.");
         }
       });
     }
@@ -96,6 +124,32 @@ export default function AdminPage() {
           setIsCountLoading(false);
         }
       });
+    } else if (activeTab === "tickets") {
+      setIsCountLoading(true);
+      startTransition(async () => {
+        try {
+          const res = await fetch("/api/tickets/count", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          });
+
+          if (res.status === 401) {
+            router.push("/login");
+            return;
+          }
+
+          if (!res.ok) {
+            throw new Error("Failed to fetch ticket count");
+          }
+
+          const data = await res.json();
+          setTicketCount(data);
+        } catch {
+          setCountError("Failed to load ticket count. Please try again.");
+        } finally {
+          setIsCountLoading(false);
+        }
+      });
     }
   }, [router, activeTab]);
 
@@ -107,8 +161,15 @@ export default function AdminPage() {
         ),
       );
       setFilteredUsers(filtered);
+    } else if (activeTab === "tickets") {
+      const filtered = tickets.filter((ticket) =>
+        [ticket.title, ticket.description].some((field) =>
+          field?.toLowerCase().includes(searchQuery.toLowerCase()),
+        ),
+      );
+      setFilteredTickets(filtered);
     }
-  }, [searchQuery, users, activeTab]);
+  }, [searchQuery, users, tickets, activeTab]);
 
   useEffect(() => {
     if (successMessage) {
@@ -142,12 +203,45 @@ export default function AdminPage() {
     });
   };
 
+  const handleDeleteTicket = (id: string) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch("/api/tickets", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id }),
+        });
+
+        if (res.status !== 204) {
+          const errorText = await res.text();
+          throw new Error(`Failed to delete ticket: ${errorText}`);
+        }
+
+        setTickets((prev) => prev.filter((ticket) => ticket.id !== id));
+        setFilteredTickets((prev) => prev.filter((ticket) => ticket.id !== id));
+        setTicketCount((prev) => (prev !== null ? prev - 1 : prev));
+        setSuccessMessage("Ticket deleted successfully");
+      } catch (err) {
+        setError("Failed to delete ticket. Please try again.");
+        console.error(err);
+      }
+    });
+  };
+
   const handleEditUser = (id: string) => {
     router.push(`/users/edit/${id}`);
   };
 
+  const handleEditTicket = (id: string) => {
+    router.push(`/tickets/edit/${id}`);
+  };
+
   const handleCreateUser = () => {
     router.push("/users/create");
+  };
+
+  const handleCreateTicket = () => {
+    router.push("/tickets/create");
   };
 
   return (
@@ -364,9 +458,129 @@ export default function AdminPage() {
           )}
 
           {activeTab === "tickets" && (
-            <Flex justify="center" align="center" className="h-64">
-              <Text size="4">Tickets management coming soon...</Text>
-            </Flex>
+            <>
+              <Flex justify="between" align="center" mb="4">
+                <Box>
+                  <Heading size="6">Tickets</Heading>
+                  {isCountLoading ? (
+                    <Skeleton>
+                      <Text size="4">Total Tickets: 100</Text>
+                    </Skeleton>
+                  ) : (
+                    <Text size="4">Total Tickets: {ticketCount ?? "N/A"}</Text>
+                  )}
+                </Box>
+                <Button onClick={handleCreateTicket}>Create Ticket</Button>
+              </Flex>
+
+              {isPending ? (
+                <Flex justify="center" align="center" className="h-64">
+                  <Text size="4">Loading tickets...</Text>
+                </Flex>
+              ) : filteredTickets.length === 0 ? (
+                <Flex justify="center" align="center" className="h-64">
+                  <Text size="4">
+                    {searchQuery
+                      ? "No tickets match your search."
+                      : "No tickets found."}
+                  </Text>
+                </Flex>
+              ) : (
+                <Table.Root variant="surface">
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.ColumnHeaderCell>Title</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>
+                        Description
+                      </Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Requester</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Status</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Actions</Table.ColumnHeaderCell>
+                    </Table.Row>
+                  </Table.Header>
+
+                  <Table.Body>
+                    {filteredTickets.map((ticket) => (
+                      <Table.Row key={ticket.id}>
+                        <Table.Cell>{ticket.title}</Table.Cell>
+                        <Table.Cell>
+                          {ticket.description.length > 50
+                            ? `${ticket.description.substring(0, 50)}...`
+                            : ticket.description}
+                        </Table.Cell>
+                        <Table.Cell>{ticket.requester.username}</Table.Cell>
+                        <Table.Cell>
+                          <Badge
+                            color={
+                              ticket.status === "open"
+                                ? "jade"
+                                : ticket.status === "closed"
+                                  ? "red"
+                                  : "gray"
+                            }
+                          >
+                            {ticket.status}
+                          </Badge>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <Flex gap="2">
+                            <IconButton
+                              variant="soft"
+                              onClick={() =>
+                                router.push(`/tickets/${ticket.id}`)
+                              }
+                            >
+                              <EyeOpenIcon />
+                            </IconButton>
+                            <IconButton
+                              variant="soft"
+                              onClick={() => handleEditTicket(ticket.id)}
+                            >
+                              <Pencil2Icon />
+                            </IconButton>
+                            <AlertDialog.Root>
+                              <AlertDialog.Trigger>
+                                <IconButton color="red" variant="soft">
+                                  <TrashIcon />
+                                </IconButton>
+                              </AlertDialog.Trigger>
+                              <AlertDialog.Content maxWidth="450px">
+                                <AlertDialog.Title>
+                                  Delete ticket
+                                </AlertDialog.Title>
+                                <AlertDialog.Description size="2">
+                                  Are you sure you want to delete this ticket?
+                                  This action is irreversible.
+                                </AlertDialog.Description>
+
+                                <Flex gap="3" mt="4" justify="end">
+                                  <AlertDialog.Cancel>
+                                    <Button variant="soft" color="gray">
+                                      Cancel
+                                    </Button>
+                                  </AlertDialog.Cancel>
+                                  <AlertDialog.Action>
+                                    <Button
+                                      variant="solid"
+                                      color="red"
+                                      onClick={() =>
+                                        handleDeleteTicket(ticket.id)
+                                      }
+                                    >
+                                      Delete
+                                    </Button>
+                                  </AlertDialog.Action>
+                                </Flex>
+                              </AlertDialog.Content>
+                            </AlertDialog.Root>
+                          </Flex>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+              )}
+            </>
           )}
         </Card>
       </Flex>

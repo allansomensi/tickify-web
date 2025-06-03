@@ -8,7 +8,7 @@ export async function GET() {
   }
 
   try {
-    const res = await fetch("http://localhost:8000/api/v1/users/count", {
+    const res = await fetch("http://localhost:8000/api/v1/tickets/count", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -18,7 +18,7 @@ export async function GET() {
 
     if (!res.ok) {
       return Response.json(
-        { error: "Failed to fetch user count" },
+        { error: "Failed to fetch ticket count" },
         { status: res.status },
       );
     }
@@ -26,7 +26,7 @@ export async function GET() {
     const data = await res.json();
     return Response.json(data);
   } catch (err) {
-    console.error("GET /api/users/count failed:", err);
+    console.error("GET /api/tickets/count failed:", err);
     return Response.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
